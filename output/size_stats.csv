@@ -1,0 +1,6 @@
+,width,width,width,height,height,height,size,size,size
+,min,median,max,min,median,max,min,median,max
+class,,,,,,,,,
+AiArtData,225.0,1024.0,6000.0,135.0,800.0,4001.0,11.5,195.1,5494.3
+RealArt,183.0,920.0,8495.0,158.0,720.0,7091.0,11.0,141.4,9956.4
+ALL,183.0,1024.0,8495.0,135.0,768.0,7091.0,11.0,165.1,9956.4
