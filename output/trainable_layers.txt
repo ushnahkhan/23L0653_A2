@@ -1,0 +1,17 @@
+===== STAGE 1 - frozen backbone =====
+Trainable params: 1,281 | Non-trainable params: 2,257,984
+Trainable backbone layers (0):
+   (none - backbone frozen)
+Trainable head layers (1):
+   output                       Dense                      1,281
+
+===== STAGE 2 - last block unfrozen =====
+Trainable params: 880,321 | Non-trainable params: 1,378,944
+Trainable backbone layers (4):
+   block_16_expand              Conv2D                   153,600
+   block_16_depthwise           DepthwiseConv2D            8,640
+   block_16_project             Conv2D                   307,200
+   Conv_1                       Conv2D                   409,600
+Trainable head layers (1):
+   output                       Dense                      1,281
+
