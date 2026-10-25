@@ -1,0 +1,9 @@
+tensorflow
+pillow
+pandas
+numpy
+matplotlib
+tqdm
+kaggle
+mlflow
+dagshub
