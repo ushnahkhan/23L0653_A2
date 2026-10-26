@@ -1,0 +1,22 @@
+{
+  "model": "mobilenet",
+  "seed": 42,
+  "epochs_run": 25,
+  "best_epoch": 12,
+  "lr_reduced_after_epochs": [
+    11,
+    15,
+    16,
+    20,
+    23,
+    25
+  ],
+  "best_checkpoint": "output\\models\\mobilenet_best.keras",
+  "val_scores_of_best_checkpoint": {
+    "accuracy": 0.7123,
+    "auc": 0.7889,
+    "loss": 0.5627,
+    "precision": 0.7468,
+    "recall": 0.7284
+  }
+}
