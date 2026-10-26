@@ -1,0 +1,11 @@
+id,error,prob_ai,width,height,aspect,size,format,mode,sharpness,saturation,filepath
+1,FP: real -> AI,0.8801805,760,506,1.5,156.2,JPEG,RGB,2461.614501953125,147.78352481617648,data/RealArt/RealArt/231019-Yayoi-Kusama-ew-337p-647c5e.jpg
+2,FP: real -> AI,0.84582007,2048,1365,1.5,550.4,JPEG,RGB,1767.808349609375,75.95271381578948,data/RealArt/RealArt/02-still-for-america-room-loop-superJumbo.jpg
+3,FP: real -> AI,0.7867264,336,500,0.67,117.98,JPEG,RGB,1880.1041259765625,66.33175872093024,data/RealArt/RealArt/9780241416907-jacket-large.jpg
+4,FP: real -> AI,0.7615174,850,462,1.84,133.47,JPEG,RGB,1511.4287109375,96.96104991007195,data/RealArt/RealArt/large-beautiful-print-of-village-scenery-waterproof-texture-original-imafzgbusjtaysub.jpeg
+5,FP: real -> AI,0.7374066,1800,1544,1.17,663.91,JPEG,RGB,324.1866455078125,191.31402698863636,data/RealArt/RealArt/Monroe_Exotic_Animals_Texas4.jpg
+6,FN: AI -> real,0.074084096,1200,675,1.78,1186.32,JPEG,RGB,3503.767333984375,113.91048177083333,data/AiArtData/AiArtData/Nov20_17_498430921.jpg
+7,FN: AI -> real,0.14170119,1212,1480,0.82,4447.55,PNG,RGBA,2356.918212890625,117.27950148809524,data/AiArtData/AiArtData/Screen_Shot_2023-01-22_at_5.33.01_PM.png
+8,FN: AI -> real,0.1651429,1024,768,1.33,130.86,JPEG,RGB,797.4656982421875,101.09891764322917,data/AiArtData/AiArtData/Bu69yrI45ueNWQX84ap5.jpg
+9,FN: AI -> real,0.16737135,614,468,1.31,354.94,PNG,RGB,81.84626770019531,87.35753205128205,data/AiArtData/AiArtData/Midjourney-prompt-23b3316-e1679066406110.png
+10,FN: AI -> real,0.18427578,1664,1109,1.5,1357.92,JPEG,RGB,386.8883361816406,54.928636695906434,data/AiArtData/AiArtData/Midjourney-River.jpg
