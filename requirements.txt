@@ -9,3 +9,4 @@ mlflow
 dagshub
 keras-tuner
 tensorboard
+python-dotenv

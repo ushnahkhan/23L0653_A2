@@ -8,3 +8,4 @@ output/models/
 mlflow.db
 mlruns/
 mlartifacts/
+.env
