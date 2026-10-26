@@ -7,3 +7,5 @@ tqdm
 kaggle
 mlflow
 dagshub
+keras-tuner
+tensorboard

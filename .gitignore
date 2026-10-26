@@ -5,3 +5,6 @@ output/audit.csv
 output/clean_index.csv
 /data
 output/models/
+mlflow.db
+mlruns/
+mlartifacts/
