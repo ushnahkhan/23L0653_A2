@@ -72,14 +72,12 @@ elif MODEL_NAME == "mobilenet":
     from transferlearning import build_model, get_metrics, LAST_BLOCK
     model, base = build_model()
 
-    # Stage 1 - frozen backbone
     model.compile(optimizer=tf.keras.optimizers.Adam(1e-3),
                     loss="binary_crossentropy", metrics=get_metrics())
     h1 = model.fit(train_ds, validation_data=val_ds, epochs=15,
                     callbacks=make_callbacks(checkpoint, min_lr=1e-5))
     hist1 = to_df(h1)
 
-    # Stage 2 - unfreeze last block only, 100x smaller LR
     base.trainable = True
     for layer in base.layers:
         layer.trainable = (layer.name.startswith(LAST_BLOCK)
@@ -97,7 +95,6 @@ else:
 hist.to_csv(OUT_DIR / f"history_{MODEL_NAME}.csv", index=False)
 
 
-# ---------- 4. Best epoch + curves ----------
 best = hist.loc[hist["val_loss"].idxmin()]
 best_epoch = int(best["epoch"])
 lr_drops = [int(e) for e, prev, cur in zip(hist["epoch"][1:], hist["lr"][:-1], hist["lr"][1:])
@@ -127,8 +124,6 @@ fig.tight_layout()
 fig.savefig(FIG_DIR / f"curves_{MODEL_NAME}_best.png", dpi=150)
 plt.close(fig)
 
-
-# ---------- 5. Reload best checkpoint and confirm ----------
 best_model = tf.keras.models.load_model(CKPT_PATH)
 val_scores = best_model.evaluate(val_ds, return_dict=True, verbose=0)
 
@@ -136,5 +131,6 @@ summary = {"model": MODEL_NAME, "seed": SEED, "epochs_run": len(hist),
             "best_epoch": best_epoch, "lr_reduced_after_epochs": lr_drops,
             "best_checkpoint": str(CKPT_PATH),
             "val_scores_of_best_checkpoint": {k: round(float(v), 4) for k, v in val_scores.items()}}
-(OUT_DIR / f"summary_{MODEL_NAME}.json").write_text(json.dumps(summary, indent=2))
+with open(OUT_DIR / f"summary_{MODEL_NAME}.json", "w") as f:
+    json.dump(summary, f)
 print("\n" + json.dumps(summary, indent=2))
