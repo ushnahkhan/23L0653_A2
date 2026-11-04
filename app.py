@@ -5,6 +5,8 @@ Run: python app.py   ->  http://127.0.0.1:8000
 import io
 import os
 import time
+import hashlib
+import math
 
 from flask import Flask, Request, jsonify, redirect, render_template, request, url_for
 from PIL import Image, UnidentifiedImageError
@@ -66,11 +68,12 @@ def validate(file):
             im.verify()
         with Image.open(io.BytesIO(data)) as im:   # full decode - catches truncated files
             im.load()
+            info = {"image_format": im.format, "image_width": im.width, "image_height": im.height}
     except (UnidentifiedImageError, OSError, SyntaxError, Image.DecompressionBombError):
         raise UploadError("Image could not be read",
                             "The file looks like an image but is damaged, incomplete or too large in pixels. "
                             "Try re-saving it or upload a different image.", 400, safe_name, len(data))
-    return safe_name, data
+    return safe_name, data, info
 
 
 # ----------------------------- pages -----------------------------
@@ -83,7 +86,7 @@ def index():
 def predict():
     t0 = time.perf_counter()
     try:
-        name, data = validate(request.files.get("image"))
+        name, data, info = validate(request.files.get("image"))
         r = model.predict(data)
     except UploadError as e:
         db.log_request(filename=e.filename, file_size=e.size, status="rejected", error=e.title,
@@ -93,13 +96,16 @@ def predict():
         db.log_request(filename=name, file_size=len(data), status="rejected", error=str(e)[:200])
         return render_template("error.html", title="Image could not be read", message=str(e)), 400
 
-    row_id = db.log_request(filename=name, file_size=len(data), status="ok", label=r["label"],
-                            confidence=r["confidence"], p_ai=r["p_ai"], threshold=r["threshold"],
-                            model_version=str(r["model_version"]),
-                            latency_ms=(time.perf_counter() - t0) * 1000)
+    row_id = db.log_request(
+        filename=name, file_size=len(data), image_sha256=hashlib.sha256(data).hexdigest(), **info,
+        status="ok", label=r["label"], p_ai=r["p_ai"], threshold=r["threshold"],
+        confidence=r["confidence"],
+        model_name=model.meta.get("model_name", "VisionGuard"),
+        model_version=str(r["model_version"]), model_run_id=model.meta.get("run_id"),
+        model_source=model.meta.get("source_run"), model_input=model.img_size,
+        latency_ms=(time.perf_counter() - t0) * 1000)
     del data                                              # image bytes dropped after the request
-    return redirect(url_for("result", row_id=row_id))     # Post/Redirect/Get: refresh is safe
-
+    return redirect(url_for("result", row_id=row_id))     # Post/Redirect/Get
 
 @app.get("/result/<int:row_id>")
 def result(row_id):
@@ -109,10 +115,19 @@ def result(row_id):
                                 message="This result does not exist."), 404
     return render_template("result.html", r=row, low=row["confidence"] < LOW_CONFIDENCE)
 
-
 @app.get("/history")
 def history():
-    return render_template("history.html", rows=db.recent(50))
+    status = request.args.get("status") if request.args.get("status") in ("ok", "rejected") else None
+    label = request.args.get("label") if request.args.get("label") in ("AI-generated", "Real") else None
+    try:
+        page = max(int(request.args.get("page", 1)), 1)
+    except ValueError:
+        page = 1
+    per_page = 25
+    rows, total = db.query(status=status, label=label, page=page, per_page=per_page)
+    return render_template("history.html", rows=rows, total=total, page=page,
+                            pages=max(math.ceil(total / per_page), 1),
+                            stats=db.stats(), status=status, label=label)
 
 
 @app.get("/health")

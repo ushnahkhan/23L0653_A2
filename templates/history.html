@@ -1,25 +1,81 @@
 {% extends "base.html" %}
 {% block title %}History{% endblock %}
+{% block main_class %}wide{% endblock %}
 {% block content %}
 <div class="card">
-    <h1>Recent requests</h1>
-    <table>
-        <tr><th>#</th><th>Time (UTC)</th><th>File</th><th>Status</th><th>Verdict</th><th>Confidence</th><th>ms</th></tr>
-        {% for r in rows %}
-        <tr>
-        <td>{{ r.id }}</td>
-        <td>{{ r.created_at.strftime("%Y-%m-%d %H:%M:%S") }}</td>
-        <td>{{ r.filename or "-" }}</td>
-        {% if r.status == "ok" %}
-            <td>ok</td><td>{{ r.label }}</td><td>{{ "%.0f"|format(r.confidence * 100) }}%</td>
-        {% else %}
-            <td class="rejected">rejected</td><td colspan="2" class="rejected">{{ r.error }}</td>
-        {% endif %}
-        <td>{{ "%.0f"|format(r.latency_ms) if r.latency_ms else "-" }}</td>
-        </tr>
-        {% else %}
-        <tr><td colspan="7">No requests yet.</td></tr>
-        {% endfor %}
-    </table>
-</div>
+    <h1>Prediction history</h1>
+    <p class="muted">Every request is recorded permanently: what was decided, when, by which model and how confidently.</p>
+
+    <div class="stats">
+        <div class="stat"><b>{{ stats.total }}</b><span class="muted"> requests</span></div>
+        <div class="stat"><b>{{ stats.ai }}</b><span class="muted"> AI-generated</span></div>
+        <div class="stat"><b>{{ stats.real }}</b><span class="muted"> Real</span></div>
+        <div class="stat"><b>{{ stats.rejected }}</b><span class="muted"> rejected</span></div>
+        <div class="stat"><b>{{ "%.0f"|format(stats.avg_conf * 100) if stats.avg_conf else "—" }}%</b><span class="muted"> avg confidence</span></div>
+    </div>
+
+    <form method="get" class="filters" style="margin-bottom:16px">
+        <select name="status">
+        <option value="">All statuses</option>
+        <option value="ok" {{ "selected" if status == "ok" }}>ok</option>
+        <option value="rejected" {{ "selected" if status == "rejected" }}>rejected</option>
+        </select>
+        <select name="label">
+        <option value="">All decisions</option>
+        <option value="AI-generated" {{ "selected" if label == "AI-generated" }}>AI-generated</option>
+        <option value="Real" {{ "selected" if label == "Real" }}>Real</option>
+        </select>
+        <button class="btn" style="margin-top:0;padding:6px 16px">Filter</button>
+        <a href="{{ url_for('history') }}" class="muted">clear</a>
+    </form>
+    <div class="table-wrap">
+        <table>
+            <tr><th>#</th><th>When (UTC)</th><th>File</th><th>Decision</th><th>Confidence</th>
+                <th>P(AI) / thr.</th><th>Model</th><th>ms</th></tr>
+            {% for r in rows %}
+            <tr>
+            <td>{{ r.id }}</td>
+            <td>{{ r.created_at.strftime("%Y-%m-%d %H:%M:%S") }}</td>
+            <td class="file">
+                {% if r.status == "ok" %}<a href="{{ url_for('result', row_id=r.id) }}">{{ r.filename }}</a>
+                <div class="muted">{{ r.image_width }}×{{ r.image_height }} {{ r.image_format }}</div>
+                {% else %}{{ r.filename or "—" }}{% endif %}
+            </td>
+            {% if r.status == "ok" %}
+                <td><span class="badge {{ 'ai' if r.label == 'AI-generated' else 'real' }}">{{ r.label }}</span></td>
+                <td>{{ "%.0f"|format(r.confidence * 100) }}%</td>
+                <td>{{ "%.2f"|format(r.p_ai) }} / {{ r.threshold }}</td>
+                <td>{{ r.model_name or "—" }} v{{ r.model_version }}
+                    <div class="muted">{{ r.model_source or "" }} · run {{ (r.model_run_id or "")[:8] }}</div></td>
+            {% else %}
+                <td colspan="4"><span class="badge bad">rejected</span> <span class="muted">{{ r.error }}</span></td>
+            {% endif %}
+            <td>{{ "%.0f"|format(r.latency_ms) if r.latency_ms else "—" }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="8" class="muted">No matching requests.</td></tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <p class="muted" style="margin-top:14px">
+        {% if page > 1 %}<a href="{{ url_for('history', page=page-1, status=status, label=label) }}">← newer</a>{% endif %}
+        Page {{ page }} of {{ pages }} ({{ total }} records)
+        {% if page < pages %}<a href="{{ url_for('history', page=page+1, status=status, label=label) }}">older →</a>{% endif %}
+    </p>
+
+    {% if stats.by_model %}
+    <h3>Decisions per model version</h3>
+        <div class="table-wrap">
+            <table>
+                <tr><th>Model</th><th>Version</th><th>Decision</th><th>Count</th><th>Avg confidence</th></tr>
+                {% for m in stats.by_model %}
+                <tr><td>{{ m.model_name or "—" }}</td><td>{{ m.model_version }}</td><td>{{ m.label }}</td>
+                    <td>{{ m.n }}</td><td>{{ "%.0f"|format(m.avg_conf * 100) }}%</td></tr>
+                {% endfor %}
+            </table>
+        </div>
+    {% endif %}
+    <p class="muted">Images are never stored; only these details are recorded.</p>
+    </div>
 {% endblock %}
