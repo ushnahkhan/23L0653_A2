@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}History{% endblock %}
+{% block content %}
+<div class="card">
+    <h1>Recent requests</h1>
+    <table>
+        <tr><th>#</th><th>Time (UTC)</th><th>File</th><th>Status</th><th>Verdict</th><th>Confidence</th><th>ms</th></tr>
+        {% for r in rows %}
+        <tr>
+        <td>{{ r.id }}</td>
+        <td>{{ r.created_at.strftime("%Y-%m-%d %H:%M:%S") }}</td>
+        <td>{{ r.filename or "-" }}</td>
+        {% if r.status == "ok" %}
+            <td>ok</td><td>{{ r.label }}</td><td>{{ "%.0f"|format(r.confidence * 100) }}%</td>
+        {% else %}
+            <td class="rejected">rejected</td><td colspan="2" class="rejected">{{ r.error }}</td>
+        {% endif %}
+        <td>{{ "%.0f"|format(r.latency_ms) if r.latency_ms else "-" }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7">No requests yet.</td></tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Result{% endblock %}
+{% block content %}
+<div class="card">
+    <p class="muted">File: {{ r.filename }}</p>
+    <div class="verdict {{ 'ai' if r.label == 'AI-generated' else 'real' }}">{{ r.label }}</div>
+    <p>Confidence: <strong>{{ "%.0f"|format(r.confidence * 100) }}%</strong>
+        <span class="muted">(P(AI) = {{ "%.2f"|format(r.p_ai) }}, decision threshold {{ r.threshold }})</span></p>
+    {% if low %}<p><strong>Low confidence</strong> - the model is unsure; treat this result as inconclusive.</p>{% endif %}
+    <div class="caveat">
+        <strong>Please read:</strong> this is an automated statistical estimate, not proof.
+        The model is wrong on a meaningful share of images, especially paintings, illustrations,
+        heavily edited photos and very realistic AI images. Never use this result alone to accuse
+        someone of faking an image.
+    </div>
+    <p class="muted">Model version {{ r.model_version }} · {{ "%.0f"|format(r.latency_ms) }} ms</p>
+    <p><a href="{{ url_for('index') }}">Analyse another image</a></p>
+</div>
+{% endblock %}

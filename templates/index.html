@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Upload{% endblock %}
+{% block content %}
+<div class="card">
+    <h1>Is this image AI-generated?</h1>
+    <p>Upload an image and VisionGuard estimates whether it was made by generative AI or is a real image.</p>
+    <form action="{{ url_for('predict') }}" method="post" enctype="multipart/form-data">
+        <input type="file" name="image" accept=".jpg,.jpeg,.png,.gif,.bmp" required>
+        <button type="submit">Analyse</button>
+    </form>
+    <p class="muted">Allowed: {{ allowed }} · Max {{ max_mb }} MB · Your image is analysed in memory and never stored.</p>
+</div>
+{% endblock %}
