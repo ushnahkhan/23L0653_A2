@@ -21,7 +21,7 @@ from dotenv import load_dotenv
 from sklearn.metrics import confusion_matrix, fbeta_score, roc_auc_score
 
 from pipeline import augment as augment_layer
-from transfer_learning import get_metrics
+from transferlearning import get_metrics
 
 EXPERIMENT = "23L0653_A2_Ops_visionguard_comparison"
 BATCH_SIZE, AUTOTUNE = 32, tf.data.AUTOTUNE
