@@ -8,7 +8,8 @@ import tensorflow as tf
 
 MODEL_NAME = "23L0653_A2_Ops_VisionGuard"
 ALIAS = "champion"
-STORE = Path(os.getenv("VISIONGUARD_MODEL_DIR", "model_store"))   # local copy of the champion
+import config
+STORE = Path(config.MODEL_DIR)                                     # local copy of the championMETA_FILE = STORE / "model_meta.json"
 META_FILE = STORE / "model_meta.json"
 
 
@@ -51,16 +52,27 @@ def fetch_champion():
 class VisionGuard:
     def __init__(self):
         t0 = time.perf_counter()
-        if not META_FILE.exists() or not list(STORE.rglob("*.keras")):
-            fetch_champion()
-        self.meta = json.loads(META_FILE.read_text())
-        self.img_size = self.meta["img_size"]
-        self.threshold = self.meta["threshold"]
-        self.model = tf.keras.models.load_model(next(STORE.rglob("*.keras")))
+        if config.MODEL_PATH:                                  # explicit file from env
+            model_file = Path(config.MODEL_PATH)
+            meta_path = model_file.parent / "model_meta.json"
+            self.meta = (json.loads(meta_path.read_text()) if meta_path.exists()
+                            else {"version": "local", "source_run": model_file.name})
+        else:                                                  # champion from the registry
+            if not META_FILE.exists() or not list(STORE.rglob("*.keras")):
+                fetch_champion()
+            model_file = next(STORE.rglob("*.keras"))
+            self.meta = json.loads(META_FILE.read_text())
+
+        self.img_size = config.IMG_SIZE or self.meta.get("img_size")
+        self.threshold = config.THRESHOLD if config.THRESHOLD is not None else self.meta.get("threshold")
+        if self.img_size is None or self.threshold is None:
+            raise RuntimeError("Set VISIONGUARD_IMG_SIZE and VISIONGUARD_THRESHOLD (no model metadata found)")
+        self.model_path = str(model_file)
+        self.model = tf.keras.models.load_model(model_file)
         self.model.predict(np.zeros((1, self.img_size, self.img_size, 3), np.float32),
                             verbose=0)                     # warm-up: builds the graph once
         self.load_seconds = time.perf_counter() - t0
-        print(f"[inference] model v{self.meta['version']} ({self.meta['source_run']}) loaded in "
+        print(f"[inference] model v{self.meta.get('version')} ({self.meta['source_run']}) loaded in "
                 f"{self.load_seconds:.2f} s | input {self.img_size}px | threshold {self.threshold}")
 
     def predict(self, raw_bytes: bytes) -> dict:

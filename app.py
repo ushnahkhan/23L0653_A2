@@ -14,12 +14,12 @@ from werkzeug.utils import secure_filename
 import db
 from inference import get_model
 
-MAX_MB = int(os.getenv("MAX_UPLOAD_MB", "8"))
+import config
+MAX_MB = config.MAX_UPLOAD_MB
 ALLOWED_EXT = {"jpg", "jpeg", "png", "gif", "bmp"}
 MAGIC = (b"\xff\xd8\xff", b"\x89PNG\r\n\x1a\n", b"GIF87a", b"GIF89a", b"BM")  # real file signatures
 Image.MAX_IMAGE_PIXELS = 50_000_000            # block "decompression bomb" images
-LOW_CONFIDENCE = 0.65
-
+LOW_CONFIDENCE = config.LOW_CONFIDENCE
 
 class InMemoryRequest(Request):
     """Keep every upload in RAM - Werkzeug would otherwise spill files >500 KB to a temp file."""
@@ -123,9 +123,18 @@ def health():
     except Exception as e:
         db_status = f"error: {type(e).__name__}"
     ok = db_status == "ok" and model is not None
-    return jsonify(status="ok" if ok else "degraded", model_loaded=model is not None,
-                    model_version=model.meta["version"], model_input=model.img_size,
-                    threshold=model.threshold, database=db_status), (200 if ok else 503)
+    return jsonify(
+        status="ok" if ok else "degraded",
+        model_loaded=model is not None,
+        model_version=model.meta.get("version"),
+        model_path=model.model_path,
+        model_input=model.img_size,
+        threshold=model.threshold,
+        database=db_status,
+        database_backend=db.engine.url.get_backend_name(),   # e.g. sqlite / postgresql - no password
+        debug=app.debug,
+        server=request.environ.get("SERVER_SOFTWARE", "unknown"),
+    ), (200 if ok else 503)
 
 
 # ----------------------------- friendly errors -----------------------------
@@ -149,6 +158,5 @@ def server_error(e):
     return render_template("error.html", title="Something went wrong",
                             message="An unexpected error occurred. Please try again later."), 500
 
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.getenv("PORT", "8000")), debug=False)
+if __name__ == "__main__":                       # development only - production uses waitress/gunicorn
+    app.run(host="0.0.0.0", port=config.PORT, debug=config.DEBUG)

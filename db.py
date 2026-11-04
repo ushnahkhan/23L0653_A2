@@ -8,8 +8,8 @@ from datetime import datetime, timezone
 from sqlalchemy import (Column, DateTime, Float, Integer, MetaData, String, Table,
                         create_engine, insert, select, text)
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///visionguard.db")
-engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+import config
+engine = create_engine(config.DATABASE_URL, pool_pre_ping=True)
 meta = MetaData()
 
 predictions = Table(
