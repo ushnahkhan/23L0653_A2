@@ -1,0 +1,24 @@
+# secrets - never in the image
+.env
+.dvc/
+*.token
+
+# large or irrelevant for serving
+.venv/
+data/
+output/
+mlruns/
+mlartifacts/
+test_files/
+*.ipynb
+.ipynb_checkpoints/
+
+# local databases / caches / git
+mlflow.db
+visionguard.db
+__pycache__/
+*.pyc
+.git/
+.gitignore
+.dockerignore
+Dockerfile

@@ -1,0 +1,7 @@
+tensorflow-cpu==2.21.0
+flask==3.1.*
+gunicorn==23.*
+pillow==11.*
+sqlalchemy==2.0.*
+python-dotenv==1.*
+psycopg2-binary==2.9.*

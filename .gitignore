@@ -11,3 +11,4 @@ mlartifacts/
 .env
 model_store/
 visionguard.db
+wheels/

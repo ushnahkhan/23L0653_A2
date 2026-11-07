@@ -2,6 +2,7 @@
 app.py - VisionGuard Flask web app (Task 4.2)
 Run: python app.py   ->  http://127.0.0.1:8000
 """
+#for rebuild purposes
 import io
 import os
 import time
