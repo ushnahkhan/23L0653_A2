@@ -1,0 +1,42 @@
+name: 23l0653_a2_ops
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data          # named volume: data survives restarts
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks: [backend]
+    # no "ports:" -> reachable only inside the Compose network as db:5432
+
+  web:
+    build: .
+    image: visionguard:1.0
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy               # wait until Postgres accepts connections
+    environment:
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      VISIONGUARD_THRESHOLD: ${VISIONGUARD_THRESHOLD:-}
+      MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-8}
+      LOW_CONFIDENCE: ${LOW_CONFIDENCE:-0.65}
+    ports:
+      - "8000:8000"                              # only the web app is public
+    networks: [backend]
+
+volumes:
+  pgdata:
+
+networks:
+  backend:
