@@ -45,7 +45,8 @@ jobs:
           python-version: "3.12"
 
       - name: Download Linux wheels for the image
-        run: pip download -r requirements-app.txt -d wheels --only-binary=:all:
+        run: |
+          pip download -r requirements-app.txt -d wheels --only-binary=:all:
 
       - name: Fetch champion model from the MLflow registry
         run: |
