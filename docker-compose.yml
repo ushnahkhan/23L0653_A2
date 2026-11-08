@@ -21,7 +21,7 @@ services:
 
   web:
     build: .
-    image: visionguard:1.0
+    image: visionguard:1.1-slim
     restart: unless-stopped
     depends_on:
       db:
